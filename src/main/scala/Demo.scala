@@ -1,19 +1,23 @@
-import me.zolotko.actors.{Actor, Behaviour}
+import me.zolotko.actors.dsl._
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
+object Demo {
+  def main(args: Array[String]): Unit = {
+    val multiplier = create[Int] { n =>
+      println(n * 2)
 
-object Demo extends App {
-  val doubler = Actor.spawn(Behaviour[Int] { (n, context) =>
-    println(n * 2)
+      change { n =>
+        println(n * 3)
 
-    context.behave(Behaviour[Int] { (n, _) =>
-      println(n * 3)
-    })
-  })
+        change { n =>
+          println(n * 5)
 
-  doubler.send(2)
-  doubler.send(3)
+          keep
+        }
+      }
+    }
 
-  Await.ready(Future.never, Duration.Inf)
+    Seq(2, 3, 5, 7, 11, 13, 17, 19, 23).foreach(multiplier.send)
+
+    Thread.sleep(10000)
+  }
 }
